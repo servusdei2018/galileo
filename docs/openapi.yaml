@@ -1,0 +1,58 @@
+openapi: 3.0.3
+info:
+  title: Galileo Geolocation API
+  version: 1.0.0
+  description: A Cloudflare Worker gelocation API.
+servers:
+  - url: https://your-worker.your-domain.workers.dev
+    description: Production server
+paths:
+  /:
+    get:
+      summary: Retrieve geolocation data
+      description: Returns geolocation information based on the client's IP address.
+      responses:
+        200:
+          description: Successful response with geolocation data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ip:
+                    type: string
+                    example: '8.8.8.8'
+                  country:
+                    type: string
+                    example: 'US'
+                  region:
+                    type: string
+                    example: 'California'
+                  city:
+                    type: string
+                    example: 'Mountain View'
+                  latitude:
+                    type: string
+                    example: '37.3861'
+                  longitude:
+                    type: string
+                    example: '-122.0839'
+                  timezone:
+                    type: string
+                    example: 'America/Los_Angeles'
+                  asn:
+                    type: integer
+                    example: 15169
+                  isp:
+                    type: string
+                    example: 'Google LLC'
+        500:
+          description: Error response when geolocation data is unavailable
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: 'Geolocation data not available'

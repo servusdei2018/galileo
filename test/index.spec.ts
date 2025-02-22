@@ -1,25 +1,49 @@
-// test/index.spec.ts
-import { env, createExecutionContext, waitOnExecutionContext, SELF } from 'cloudflare:test';
 import { describe, it, expect } from 'vitest';
 import worker from '../src/index';
 
-// For now, you'll need to do something like this to get a correctly-typed
-// `Request` to pass to `worker.fetch()`.
-const IncomingRequest = Request<unknown, IncomingRequestCfProperties>;
+const IncomingRequest = Request<unknown, IncomingRequestCfPropertiesBase>;
 
-describe('Hello World worker', () => {
-	it('responds with Hello World! (unit style)', async () => {
-		const request = new IncomingRequest('http://example.com');
-		// Create an empty context to pass to `worker.fetch()`.
-		const ctx = createExecutionContext();
-		const response = await worker.fetch(request, env, ctx);
-		// Wait for all `Promise`s passed to `ctx.waitUntil()` to settle before running test assertions
-		await waitOnExecutionContext(ctx);
-		expect(await response.text()).toMatchInlineSnapshot(`"Hello World!"`);
-	});
-
-	it('responds with Hello World! (integration style)', async () => {
-		const response = await SELF.fetch('https://example.com');
-		expect(await response.text()).toMatchInlineSnapshot(`"Hello World!"`);
+describe('Galileo worker', () => {
+	/**
+	 * Test case to verify that the Cloudflare Worker correctly extracts and returns geolocation data
+	 * from the request.
+	 *
+	 * The request is simulated with specific Cloudflare geolocation headers, including country,
+	 * region, city, coordinates, timezone, ASN, and ISP. The worker is expected to process this
+	 * information and return a JSON response matching the input values.
+	 *
+	 * @async
+	 * @function
+	 * @throws {Error} If the response does not match the expected geolocation data.
+	 */
+	it('responds with geolocation data', async () => {
+		const request = new IncomingRequest('http://example.com', {
+			headers: { 'CF-Connecting-IP': '8.8.8.8' },
+			cf: {
+				...({
+					country: 'US',
+					region: 'California',
+					city: 'Mountain View',
+					latitude: '37.3861',
+					longitude: '-122.0839',
+					timezone: 'America/Los_Angeles',
+					asn: 15169,
+					asOrganization: 'Google LLC',
+				} as Partial<IncomingRequestCfProperties> as IncomingRequestCfProperties),
+			},
+		});
+		const response = await worker.fetch(request);
+		const jsonResponse = await response.json();
+		expect(jsonResponse).toMatchObject({
+			ip: '8.8.8.8',
+			country: 'US',
+			region: 'California',
+			city: 'Mountain View',
+			latitude: '37.3861',
+			longitude: '-122.0839',
+			timezone: 'America/Los_Angeles',
+			asn: 15169,
+			isp: 'Google LLC',
+		});
 	});
 });

@@ -1,18 +1,40 @@
-/**
- * Welcome to Cloudflare Workers! This is your first worker.
- *
- * - Run `npm run dev` in your terminal to start a development server
- * - Open a browser tab at http://localhost:8787/ to see your worker in action
- * - Run `npm run deploy` to publish your worker
- *
- * Bind resources to your worker in `wrangler.jsonc`. After adding bindings, a type definition for the
- * `Env` object can be regenerated with `npm run cf-typegen`.
- *
- * Learn more at https://developers.cloudflare.com/workers/
- */
-
 export default {
-	async fetch(request, env, ctx): Promise<Response> {
-		return new Response('Hello World!');
+	/**
+	 * Processes incoming requests and returns geolocation data.
+	 *
+	 * Extracts the client's IP and location details from Cloudflare’s `cf` object.
+	 * If geolocation data is unavailable, returns an error response.
+	 *
+	 * @param {Request} request - The incoming request.
+	 * @param {Env} env - Cloudflare environment bindings (unused).
+	 * @param {ExecutionContext} ctx - Execution context (unused).
+	 * @returns {Promise<Response>} JSON response with geolocation data or an error message.
+	 */
+	async fetch(request: Request) {
+		const { cf } = request;
+
+		if (!cf) {
+			return new Response(JSON.stringify({ error: 'Geolocation data not available' }), {
+				status: 500,
+				headers: { 'Content-Type': 'application/json' },
+			});
+		}
+
+		const geoData = {
+			ip: request.headers.get('CF-Connecting-IP'),
+			country: cf.country,
+			region: cf.region,
+			city: cf.city,
+			latitude: cf.latitude,
+			longitude: cf.longitude,
+			timezone: cf.timezone,
+			asn: cf.asn,
+			isp: cf.asOrganization,
+		};
+
+		return new Response(JSON.stringify(geoData, null, 2), {
+			status: 200,
+			headers: { 'Content-Type': 'application/json' },
+		});
 	},
-} satisfies ExportedHandler<Env>;
+};
