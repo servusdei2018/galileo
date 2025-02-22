@@ -1,4 +1,4 @@
-# galileo
+# galileo [![CircleCI](https://dl.circleci.com/status-badge/img/gh/servusdei2018/galileo/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/servusdei2018/galileo/tree/main)
 
 Galileo is a [Cloudflare Worker](https://developers.cloudflare.com/workers/) that provides geolocation data for incoming requests.
 
